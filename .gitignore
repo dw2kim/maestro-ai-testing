@@ -1,0 +1,8 @@
+runs/*
+!runs/.gitkeep
+*.png
+.DS_Store
+.env
+
+# Claude Code local settings (per-machine)
+.claude/settings.local.json
