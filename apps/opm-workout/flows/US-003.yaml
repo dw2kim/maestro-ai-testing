@@ -1,0 +1,38 @@
+appId: com.daewonkim.opmworkout
+---
+# US-003: Open Day 1 workout and see the exercises.
+# Grounded in home.json (Day 1 entry) and day1-workout.json (destination).
+# Maestro full-string regex match + Flutter merged/emoji labels -> DOTALL.
+- launchApp:
+    clearState: true
+
+# Start on Home; cold clearState launch can be slow, so wait generously.
+- extendedWaitUntil:
+    visible: "(?s)DAY 1.*"
+    timeout: 45000
+- takeScreenshot: 01-home
+
+# AC: tapping the unlocked "DAY 1" entry opens the workout screen.
+# On Home only Day 1 is unlocked; its label is "DAY 1\n0%".
+- tapOn: "(?s)DAY 1.*"
+
+# Confirm the workout screen rendered (a workout-only element).
+- extendedWaitUntil:
+    visible: "(?s)Push Up.*"
+    timeout: 15000
+- takeScreenshot: 02-day1-workout
+
+# AC: workout screen shows the day title ("DAY 1 💪" carries an emoji).
+- assertVisible: "(?s)DAY 1.*"
+
+# AC: all four exercises visible (each card is one merged a11y label).
+- assertVisible: "(?s)Push Up.*"
+- assertVisible: "(?s)Running.*"
+- assertVisible: "(?s)Squat.*"
+- assertVisible: "(?s)Sit Up.*"
+
+# AC: a DONE control and a back control are available.
+- assertVisible: "(?s)DONE.*"
+- assertVisible: "Back"
+
+- takeScreenshot: 03-workout-asserted
