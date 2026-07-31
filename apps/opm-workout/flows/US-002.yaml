@@ -1,0 +1,33 @@
+appId: com.daewonkim.opmworkout
+---
+# US-002: Open the Journey screen from the bottom navigation.
+# Grounded in home.json (nav) and journey.json (destination).
+# Maestro full-string regex match + Flutter suffix/merged labels -> DOTALL.
+- launchApp:
+    clearState: true
+
+# Start on Home (wait out the splash), confirm we're there.
+- extendedWaitUntil:
+    visible: "(?s)DAY 1.*"
+    timeout: 15000
+- takeScreenshot: 01-home
+
+# AC: tapping the "Journey" bottom-nav tab navigates to the Journey screen.
+# On Home only the nav tab carries "Journey" ("Journey\nTab 2 of 3").
+- tapOn: "(?s)Journey.*"
+
+# Wait for a Journey-only element to confirm navigation landed.
+- extendedWaitUntil:
+    visible: "(?s).*Total Average.*"
+    timeout: 10000
+- takeScreenshot: 02-journey
+
+# AC: Journey screen shows the "Journey" title (standalone label).
+- assertVisible: "Journey"
+
+# AC: Workout summary card + Total Average. The whole card is one merged
+# accessibility label, so match substrings of it with a DOTALL regex.
+- assertVisible: "(?s)Workout.*"
+- assertVisible: "(?s).*Total Average.*"
+
+- takeScreenshot: 03-journey-asserted

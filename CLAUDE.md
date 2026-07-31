@@ -43,6 +43,8 @@ There is no build, lint, or unit-test suite. "Running a test" means running a Ma
 - **OPM Workout is a Flutter app** — elements expose almost no `resource-id`/`text`; selectors come from `accessibilityText` (accessibility labels). The one `resource-id` in a dump is usually iOS status-bar chrome, not the app.
 - **Maestro does a FULL-string regex match**, not substring. Labels with a suffix (`"Beginner\nTab 1 of 3"`, `"DAY 2\n0%"`) will not match a bare `"Beginner"` — use a DOTALL regex `(?s)Beginner.*`. (Learned from US-001; see `reports/US-001.md`.)
 - **Dump in the same state the flow runs in.** Flows use `clearState: true`; day/progress labels are state-dependent (a completed `"DAY 1"` becomes `"DAY 1\n0%"` after reset), so grounding must be captured from cleared state or assertions will drift from reality.
+- **Flutter merges card subtrees into one label.** A whole card can expose a single `accessibilityText` (e.g. `"Workout\nTotal Average: 00:00\nM\nT\nW\nT\nF\nS\nS"`); inner texts aren't separately targetable — assert substrings with a DOTALL regex. (Learned from US-002.)
+- **Cold-launch splash can be slow/flaky.** Relaunching while the app is still foregrounded can leave it on a blank splash past a 15s wait; the run harness should terminate the app before `maestro test` (or flows should tolerate a slow first frame). (Learned from US-002; see `reports/US-002.md`.)
 - **Every acceptance criterion maps to an assertion.** No `assertVisible` (or equivalent) → no coverage.
 - **Reports must not soften failures** and must separate "fix the app" from "fix the test"; a suspected app bug is written as a ready-to-file bug report.
 

@@ -28,6 +28,10 @@ Rules:
    `clearState: true`, the dump must be taken from cleared state — labels
    like day/progress rows change with app state (a completed "DAY 1"
    becomes "DAY 1\n0%" after a reset).
+9. A Flutter card/subtree can collapse into ONE accessibility label (e.g.
+   "Workout\nTotal Average: 00:00\nM\nT\nW\nT\nF\nS\nS"). You cannot target
+   the inner texts separately; assert substrings of the combined label with
+   a DOTALL regex, e.g. `(?s).*Total Average.*`.
 
 Maestro syntax reference (do not use commands outside this list unless
 certain they exist):
