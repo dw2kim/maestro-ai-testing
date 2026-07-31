@@ -6,10 +6,13 @@ appId: com.daewonkim.opmworkout
 - launchApp:
     clearState: true
 
-# Start on Home (wait out the splash), confirm we're there.
+# Start on Home. Cold clearState launch re-seeds data and can take 20s+ to
+# render Home content (blank splash meanwhile), so wait generously here.
+# extendedWaitUntil returns as soon as the element appears, so a large
+# timeout only costs time on genuinely slow launches. (See reports/US-002.md.)
 - extendedWaitUntil:
     visible: "(?s)DAY 1.*"
-    timeout: 15000
+    timeout: 45000
 - takeScreenshot: 01-home
 
 # AC: tapping the "Journey" bottom-nav tab navigates to the Journey screen.

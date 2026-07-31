@@ -13,6 +13,18 @@ mkdir -p "${RUN_DIR}"
 echo "Run: ${RUN_DIR}"
 echo "Flow: ${FLOW}"
 
+# Start from a clean app state. Relaunching (launchApp) while the app is
+# still foregrounded can leave it stuck on a blank splash past the wait
+# timeout (flaky failure, see reports/US-002.md). Terminate the target app
+# first. appId comes from the flow's `appId:` line; best-effort on both
+# platforms, never fails the run.
+APP_ID="$(grep -E '^appId:' "${FLOW}" | head -1 | sed -E 's/^appId:[[:space:]]*//; s/[[:space:]]*$//')"
+if [ -n "${APP_ID}" ]; then
+  echo "Pre-run: stopping ${APP_ID} for a clean launch"
+  xcrun simctl terminate booted "${APP_ID}" >/dev/null 2>&1 || true
+  adb shell am force-stop "${APP_ID}" >/dev/null 2>&1 || true
+fi
+
 # --format junit      -> structured pass/fail for the report step
 # --debug-output      -> maestro logs and failure screenshots
 set +e

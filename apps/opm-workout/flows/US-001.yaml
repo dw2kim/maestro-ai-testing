@@ -9,7 +9,11 @@ appId: com.daewonkim.opmworkout
 # Labels that are already the whole string ("One Punch", "DAY 1") match plain.
 - launchApp:
     clearState: true
-- waitForAnimationToEnd
+# Cold clearState launch re-seeds data and can take 20s+ to render Home
+# (blank splash meanwhile); wait generously on a Home-content element.
+- extendedWaitUntil:
+    visible: "(?s)Beginner.*"
+    timeout: 45000
 - takeScreenshot: 01-home-loaded
 
 # AC: Home screen shows the app title / branding
