@@ -19,6 +19,15 @@ Rules:
 5. Every user story acceptance criterion must map to at least one
    `assertVisible` (or equivalent assertion). No assertion, no coverage.
 6. Keep the flow linear and readable. One flow per user story.
+7. Maestro matches a selector against the element's ENTIRE label as a
+   regex (full match, not substring). If the label in the dump carries a
+   suffix (common in Flutter apps: "Beginner\nTab 1 of 3", "DAY 2\n0%"),
+   a bare "Beginner" will NOT match. Use a DOTALL regex that spans the
+   newline: `(?s)Beginner.*`. Match on the stable leading text.
+8. Grounding must reflect RUN state, not capture state. If the flow uses
+   `clearState: true`, the dump must be taken from cleared state — labels
+   like day/progress rows change with app state (a completed "DAY 1"
+   becomes "DAY 1\n0%" after a reset).
 
 Maestro syntax reference (do not use commands outside this list unless
 certain they exist):

@@ -1,0 +1,34 @@
+appId: com.daewonkim.opmworkout
+---
+# US-001: Launch app and reach home screen.
+# Selectors are grounded in apps/opm-workout/hierarchy/home.json.
+# This is a Flutter app: elements match via accessibility labels. Maestro
+# does a FULL-string regex match, and many labels carry a suffix
+# ("Beginner\nTab 1 of 3", "DAY 2\n0%", "Home\nTab 1 of 3"). Use a DOTALL
+# regex ("(?s)prefix.*") so the pattern spans the trailing newline+suffix.
+# Labels that are already the whole string ("One Punch", "DAY 1") match plain.
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- takeScreenshot: 01-home-loaded
+
+# AC: Home screen shows the app title / branding
+- assertVisible: "One Punch"
+
+# AC: App launched to the home screen (difficulty selector rendered, no crash)
+- assertVisible: "(?s)Beginner.*"
+- assertVisible: "(?s)Amateur.*"
+- assertVisible: "(?s)Pro.*"
+
+# AC: Today's workout entry point is visible (program day list).
+# After clearState the day labels carry a "\n0%" progress suffix, so use
+# a DOTALL regex here too (the grounding dump must be from cleared state).
+- assertVisible: "(?s)DAY 1.*"
+- assertVisible: "(?s)DAY 2.*"
+
+# AC: Bottom navigation is visible
+- assertVisible: "(?s)Home.*"
+- assertVisible: "(?s)Journey.*"
+- assertVisible: "(?s)Settings.*"
+
+- takeScreenshot: 02-home-assertions-passed
