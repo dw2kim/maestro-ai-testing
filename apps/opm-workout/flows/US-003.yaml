@@ -7,9 +7,12 @@ appId: com.daewonkim.opmworkout
     clearState: true
 
 # Start on Home; cold clearState launch can be slow, so wait generously.
+# First launch after a fresh sim boot re-seeds data and can exceed 45s;
+# extendedWaitUntil returns as soon as content appears, so a larger budget
+# is free on warm launches but survives a cold-boot environment.
 - extendedWaitUntil:
     visible: "(?s)DAY 1.*"
-    timeout: 45000
+    timeout: 90000
 - takeScreenshot: 01-home
 
 # AC: tapping the unlocked "DAY 1" entry opens the workout screen.

@@ -11,9 +11,12 @@ appId: com.daewonkim.opmworkout
     clearState: true
 # Cold clearState launch re-seeds data and can take 20s+ to render Home
 # (blank splash meanwhile); wait generously on a Home-content element.
+# The first launch after a fresh simulator boot is slower still and can
+# exceed 45s; extendedWaitUntil returns as soon as the element appears, so
+# a larger budget is free on warm launches but survives a cold-boot machine.
 - extendedWaitUntil:
     visible: "(?s)Beginner.*"
-    timeout: 45000
+    timeout: 90000
 - takeScreenshot: 01-home-loaded
 
 # AC: Home screen shows the app title / branding
