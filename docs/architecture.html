@@ -1,0 +1,249 @@
+<title>Maestro pipeline architecture</title>
+<style>
+  :root{
+    --bg:#FBFAFC; --surface:#F3F1F8; --surface-2:#EAE7F3; --border:#E0DBEE;
+    --border-strong:#C9C1DE; --ink:#1B1726; --ink-2:#5B5573; --ink-3:#8B839C;
+    --ai:#6D4AFF; --ai-soft:rgba(109,74,255,.12);
+    --tool:#0E8FB0; --tool-soft:rgba(14,143,176,.13);
+    --pass:#1F945E; --pass-soft:rgba(31,148,94,.14);
+    --font-sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --font-mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --bg:#131019; --surface:#1C1826; --surface-2:#241E33; --border:#2E2740;
+    --border-strong:#463C61; --ink:#ECE9F5; --ink-2:#ADA6C2; --ink-3:#7C7592;
+    --ai:#A48CFF; --ai-soft:rgba(164,140,255,.16);
+    --tool:#3BB8D6; --tool-soft:rgba(59,184,214,.16);
+    --pass:#4FC28A; --pass-soft:rgba(79,194,138,.16);
+  }}
+  :root[data-theme="dark"]{
+    --bg:#131019; --surface:#1C1826; --surface-2:#241E33; --border:#2E2740;
+    --border-strong:#463C61; --ink:#ECE9F5; --ink-2:#ADA6C2; --ink-3:#7C7592;
+    --ai:#A48CFF; --ai-soft:rgba(164,140,255,.16);
+    --tool:#3BB8D6; --tool-soft:rgba(59,184,214,.16);
+    --pass:#4FC28A; --pass-soft:rgba(79,194,138,.16);
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font-sans);
+    line-height:1.65;margin:0;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:860px;margin:0 auto;padding:64px 24px 96px;}
+  .eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--tool);margin:0 0 18px;}
+  h1{font-family:var(--font-mono);font-weight:500;font-size:clamp(30px,5vw,44px);
+    line-height:1.08;letter-spacing:-.02em;margin:0 0 16px;text-wrap:balance;}
+  .lede{font-size:18px;color:var(--ink-2);max-width:62ch;margin:0 0 28px;}
+  h2{font-size:22px;font-weight:600;letter-spacing:-.01em;margin:56px 0 8px;text-wrap:balance;}
+  h2 .num{font-family:var(--font-mono);color:var(--ink-3);font-weight:500;margin-right:.5em;}
+  p{margin:0 0 16px;max-width:65ch;}
+  a{color:var(--ai);text-decoration:none;border-bottom:1px solid var(--border-strong);}
+  a:hover{border-color:var(--ai);}
+  code{font-family:var(--font-mono);font-size:.88em;background:var(--surface-2);
+    padding:.1em .38em;border-radius:5px;}
+  .status{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px;}
+  .chip{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);
+    font-size:12.5px;padding:6px 11px;border-radius:999px;border:1px solid var(--border-strong);
+    background:var(--surface);color:var(--ink-2);}
+  .chip.on{color:var(--pass);border-color:var(--pass);background:var(--pass-soft);}
+  .chip .dot{width:7px;height:7px;border-radius:50%;background:currentColor;}
+  .panel{margin:26px 0 10px;border:1px solid var(--border);border-radius:14px;
+    background:var(--surface);padding:18px 18px 12px;overflow-x:auto;}
+  .panel svg{display:block;width:100%;min-width:520px;height:auto;}
+  .cap{font-family:var(--font-mono);font-size:12px;color:var(--ink-3);margin:4px 2px 0;}
+  .ladder{list-style:none;padding:0;margin:20px 0 0;display:flex;flex-direction:column;gap:2px;}
+  .rung{display:grid;grid-template-columns:44px 1fr;gap:18px;padding:20px 4px;
+    border-top:1px solid var(--border);align-items:start;}
+  .rung:last-child{border-bottom:1px solid var(--border);}
+  .rung .n{font-family:var(--font-mono);font-size:26px;font-weight:500;color:var(--ink-3);
+    line-height:1;padding-top:2px;font-variant-numeric:tabular-nums;}
+  .rung h3{font-size:16.5px;margin:0 0 3px;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;}
+  .tag{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+    padding:3px 8px;border-radius:5px;font-weight:500;}
+  .tag.ai{color:var(--ai);background:var(--ai-soft);}
+  .tag.tool{color:var(--tool);background:var(--tool-soft);}
+  .tag.rev{color:var(--ink-2);background:var(--surface-2);}
+  .rung p{margin:0;color:var(--ink-2);font-size:15px;}
+  .callout{margin:28px 0 0;border:1px solid var(--border-strong);border-left:3px solid var(--tool);
+    border-radius:12px;background:var(--surface);padding:20px 22px;}
+  .callout h3{margin:0 0 8px;font-size:16px;}
+  pre{font-family:var(--font-mono);font-size:12.5px;line-height:1.6;background:var(--surface-2);
+    border:1px solid var(--border);border-radius:10px;padding:16px;overflow-x:auto;margin:14px 0 0;
+    color:var(--ink);}
+  pre .c{color:var(--ink-3);} pre .k{color:var(--ai);} pre .s{color:var(--tool);}
+  .foot{margin-top:64px;padding-top:20px;border-top:1px solid var(--border);
+    font-family:var(--font-mono);font-size:12.5px;color:var(--ink-3);
+    display:flex;flex-wrap:wrap;gap:6px 18px;}
+  .dg-th{font-family:var(--font-sans);font-size:14px;font-weight:500;fill:var(--ink);}
+  .dg-ts{font-family:var(--font-mono);font-size:12px;fill:var(--ink-2);}
+  .dg-box rect{fill:var(--surface-2);stroke:var(--border-strong);stroke-width:1.4;}
+  .dg-purple rect{fill:var(--ai-soft);stroke:var(--ai);stroke-width:1.6;}
+  .dg-blue rect{fill:var(--tool-soft);stroke:var(--tool);stroke-width:1.6;}
+  .dg-note rect{fill:transparent;stroke:var(--border-strong);stroke-width:1.3;stroke-dasharray:5 4;}
+  .dg-arr{stroke:var(--ink-3);stroke-width:1.6;fill:none;}
+  .dg-loop{stroke:var(--ai);stroke-width:1.6;fill:none;stroke-dasharray:5 4;}
+  .sw{stroke-width:0;}
+  @media (max-width:560px){.wrap{padding:44px 18px 72px}h1{font-size:30px}}
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">AI &plus; Maestro &middot; hand-cranked v1</p>
+  <h1>From a user story to a test report</h1>
+  <p class="lede">A mobile E2E pipeline where two of the four stages are Claude reading a prompt,
+    not code calling a model. A real screen dump grounds generation; Maestro on a device is the
+    judge; every run teaches a rule that sharpens the next.</p>
+
+  <div class="status">
+    <span class="chip on"><span class="dot"></span>3 stories green</span>
+    <span class="chip">local-only</span>
+    <span class="chip">human reviews every stage</span>
+    <span class="chip">no LLM in the code</span>
+  </div>
+
+  <div class="panel">
+    <svg viewBox="0 0 680 664" role="img" xmlns="http://www.w3.org/2000/svg">
+      <title>The five-stage Maestro AI test pipeline</title>
+      <desc>A user story and a device view-hierarchy dump feed an AI generate-flow step that
+        produces flow YAML; run_flow.sh runs it through the Maestro CLI on a device, producing
+        run artifacts; an AI generate-report step turns those into a report. A dashed feedback
+        loop carries grounding rules learned each run back into generation, and a human reviews
+        every stage.</desc>
+      <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6"
+        orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke"
+        stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+
+      <line x1="252" y1="98" x2="300" y2="130" class="dg-arr" marker-end="url(#ar)"/>
+      <line x1="387" y1="98" x2="340" y2="130" class="dg-arr" marker-end="url(#ar)"/>
+      <line x1="320" y1="188" x2="320" y2="220" class="dg-arr" marker-end="url(#ar)"/>
+      <line x1="320" y1="266" x2="320" y2="298" class="dg-arr" marker-end="url(#ar)"/>
+      <line x1="320" y1="356" x2="320" y2="388" class="dg-arr" marker-end="url(#ar)"/>
+      <line x1="320" y1="434" x2="320" y2="466" class="dg-arr" marker-end="url(#ar)"/>
+      <line x1="320" y1="524" x2="320" y2="556" class="dg-arr" marker-end="url(#ar)"/>
+
+      <path d="M220,582 L107,582 L107,414" class="dg-loop" marker-end="url(#ar)"/>
+      <path d="M107,358 L107,160 L188,160" class="dg-loop" marker-end="url(#ar)"/>
+
+      <g class="dg-note"><rect x="478" y="132" width="162" height="392" rx="10"/></g>
+      <text x="559" y="300" text-anchor="middle" class="dg-th">Human review</text>
+      <text x="559" y="320" text-anchor="middle" class="dg-ts">every stage gates</text>
+      <text x="559" y="337" text-anchor="middle" class="dg-ts">the next one</text>
+      <text x="559" y="361" text-anchor="middle" class="dg-ts">v1: hand-cranked</text>
+
+      <g class="dg-box"><rect x="190" y="52" width="125" height="46" rx="8"/></g>
+      <text x="252" y="74" text-anchor="middle" class="dg-th">User story</text>
+      <text x="252" y="90" text-anchor="middle" class="dg-ts">markdown</text>
+
+      <g class="dg-box"><rect x="325" y="52" width="125" height="46" rx="8"/></g>
+      <text x="387" y="74" text-anchor="middle" class="dg-th">Hierarchy</text>
+      <text x="387" y="90" text-anchor="middle" class="dg-ts">device dump</text>
+
+      <g class="dg-purple"><rect x="190" y="132" width="260" height="56" rx="8"/></g>
+      <text x="320" y="158" text-anchor="middle" class="dg-th">1 &middot; Generate flow</text>
+      <text x="320" y="176" text-anchor="middle" class="dg-ts">generate-flow.md &rarr; Claude</text>
+
+      <g class="dg-box"><rect x="220" y="222" width="200" height="44" rx="8"/></g>
+      <text x="320" y="241" text-anchor="middle" class="dg-th">Flow YAML</text>
+      <text x="320" y="256" text-anchor="middle" class="dg-ts">committed &middot; reviewed</text>
+
+      <g class="dg-blue"><rect x="190" y="300" width="260" height="56" rx="8"/></g>
+      <text x="320" y="326" text-anchor="middle" class="dg-th">2 &middot; Run on device</text>
+      <text x="320" y="344" text-anchor="middle" class="dg-ts">run_flow.sh &rarr; Maestro</text>
+
+      <g class="dg-box"><rect x="220" y="390" width="200" height="44" rx="8"/></g>
+      <text x="320" y="409" text-anchor="middle" class="dg-th">Run artifacts</text>
+      <text x="320" y="424" text-anchor="middle" class="dg-ts">JUnit &middot; logs &middot; shots</text>
+
+      <g class="dg-purple"><rect x="190" y="468" width="260" height="56" rx="8"/></g>
+      <text x="320" y="494" text-anchor="middle" class="dg-th">3 &middot; Generate report</text>
+      <text x="320" y="512" text-anchor="middle" class="dg-ts">generate-report.md &rarr; Claude</text>
+
+      <g class="dg-box"><rect x="220" y="558" width="200" height="44" rx="8"/></g>
+      <text x="320" y="577" text-anchor="middle" class="dg-th">Report</text>
+      <text x="320" y="592" text-anchor="middle" class="dg-ts">fix app vs fix test</text>
+
+      <g class="dg-box"><rect x="45" y="362" width="125" height="52" rx="8"/></g>
+      <text x="107" y="385" text-anchor="middle" class="dg-th">Grounding</text>
+      <text x="107" y="401" text-anchor="middle" class="dg-ts">rules per run</text>
+
+      <rect x="190" y="630" width="14" height="14" rx="3" class="sw" fill="var(--ai)"/>
+      <text x="212" y="641" class="dg-ts">AI step &mdash; Claude</text>
+      <rect x="360" y="630" width="14" height="14" rx="3" class="sw" fill="var(--tool)"/>
+      <text x="382" y="641" class="dg-ts">script / Maestro</text>
+    </svg>
+  </div>
+  <p class="cap">Purple = Claude reading a prompt. Teal = the only executable code. Dashed = the learning loop.</p>
+
+  <h2>Reading the diagram</h2>
+  <p>There is <strong>no code in this repo that calls an LLM</strong>. Stages&nbsp;1 and&nbsp;3
+    happen because a person — or Claude Code — hands a prompt template plus inputs to Claude.
+    The teal box and the hierarchy dump feeding the top are the only executable pieces; everything
+    neutral is a file on disk.</p>
+  <p>Generation is <strong>grounded</strong>: the flow may only use selectors that appear in a real
+    <code>view hierarchy</code> dumped from the running app — without it, the model invents selectors.
+    The flow YAML is committed and code-reviewed like a PR (<code>runs/</code> is not committed);
+    generated does not mean trusted. And the dashed loop is the part that compounds: each run teaches
+    a selector or timing rule that gets written back into the prompt, so the next flow is sharper.
+    The first story needed two fixes, the second a reliability fix, the third passed first try.</p>
+
+  <h2>How a generated flow stays valid Maestro YAML</h2>
+  <p>Honest answer: nothing in this repo validates the YAML before it runs — there is no Maestro
+    schema or linter between Claude and the device. Instead, correctness is enforced by four layers,
+    ordered by <em>when</em> each one catches a mistake.</p>
+
+  <ol class="ladder">
+    <li class="rung"><span class="n">1</span><div>
+      <h3>The prompt pins the convention <span class="tag ai">prevention</span></h3>
+      <p><code>prompts/generate-flow.md</code> embeds an explicit allow-list of Maestro commands and
+        the required two-document shape (<code>appId:</code>, then <code>---</code>, then steps), with
+        a hard rule: don't use a command outside the list unless certain it exists. The convention
+        lives in the prompt as source, not in the model's memory.</p>
+    </div></li>
+    <li class="rung"><span class="n">2</span><div>
+      <h3>Claude fills the gaps <span class="tag ai">generation</span></h3>
+      <p>Within that subset the model supplies indentation, the map-vs-string forms, and selector
+        regexes. Useful but fuzzy — trusted only because layers 3 and 4 follow it.</p>
+    </div></li>
+    <li class="rung"><span class="n">3</span><div>
+      <h3>A human reviews the flow <span class="tag rev">review</span></h3>
+      <p>The flow is committed and read like a PR before it is trusted — which is exactly why
+        <code>apps/*/flows/</code> is in git and <code>runs/</code> is not.</p>
+    </div></li>
+    <li class="rung"><span class="n">4</span><div>
+      <h3>Maestro is the real validator <span class="tag tool">source of truth</span></h3>
+      <p><code>maestro test</code> inside <code>run_flow.sh</code> parses the YAML and rejects
+        malformed structure or unknown commands at runtime — the run just fails. There is no separate
+        spec the model is checked against; the CLI's own parser <em>is</em> the spec. This is why the
+        docs at <code>docs.maestro.dev</code>, not the model, are treated as authoritative.</p>
+    </div></li>
+  </ol>
+
+  <div class="callout">
+    <h3>The gap, and how to close it</h3>
+    <p>A syntactically broken flow isn't caught until you spend ~15s running it on a device. The
+      natural fix is a static pre-flight between stages&nbsp;1 and&nbsp;2 — parse the YAML and check
+      commands against the same allow-list, no device needed. A first sketch:</p>
+<pre><span class="c"># scripts/validate_flow.sh — static pre-flight before run_flow.sh (proposed)</span>
+<span class="k">set</span> -euo pipefail
+FLOW=<span class="s">"${1:?usage: validate_flow.sh &lt;flow.yaml&gt;}"</span>
+
+<span class="c"># 1. must declare an appId and the --- document separator</span>
+grep -qE <span class="s">'^appId:[[:space:]]*\S'</span> <span class="s">"$FLOW"</span> || { <span class="k">echo</span> <span class="s">"missing appId"</span>; <span class="k">exit</span> 1; }
+grep -qxF <span class="s">'---'</span> <span class="s">"$FLOW"</span> || { <span class="k">echo</span> <span class="s">"missing --- separator"</span>; <span class="k">exit</span> 1; }
+
+<span class="c"># 2. every step command must be in the allow-list from the prompt</span>
+ALLOW=<span class="s">'launchApp|tapOn|inputText|assertVisible|assertNotVisible|scroll'</span>
+ALLOW=<span class="s">"$ALLOW|scrollUntilVisible|back|takeScreenshot|waitForAnimationToEnd"</span>
+ALLOW=<span class="s">"$ALLOW|extendedWaitUntil|stopApp"</span>
+grep -oE <span class="s">'^[[:space:]]*-[[:space:]]+[a-zA-Z]+'</span> <span class="s">"$FLOW"</span> \
+  | sed -E <span class="s">'s/^[^a-zA-Z]+//'</span> | grep -vE <span class="s">"^($ALLOW)$"</span> \
+  &amp;&amp; { <span class="k">echo</span> <span class="s">"unknown Maestro command (above)"</span>; <span class="k">exit</span> 1; } || <span class="k">true</span>
+
+<span class="k">echo</span> <span class="s">"OK: $FLOW"</span></pre>
+    <p style="margin-top:14px">It's a lint, not a full parse — Maestro stays the source of truth (layer&nbsp;4).
+      It just moves the cheapest mistakes off the device and onto a sub-second check, and would slot in
+      as the gate <code>run_flow.sh</code> calls first.</p>
+  </div>
+
+  <div class="foot">
+    <span>maestro-ai-testing</span><span>target: OPM Workout (Flutter, iOS/Android)</span>
+    <span>v1 · local-only · hand-cranked on purpose</span>
+  </div>
+</div>
