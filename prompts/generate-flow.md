@@ -33,7 +33,7 @@ Rules:
    the inner texts separately; assert substrings of the combined label with
    a DOTALL regex, e.g. `(?s).*Total Average.*`.
 10. After a `clearState` launch, wait on a screen-specific element with a
-    generous `extendedWaitUntil` (timeout: 45000) BEFORE asserting — the cold
+    generous `extendedWaitUntil` (timeout: 90000) BEFORE asserting — the cold
     launch re-seeds data and can take 20s+ to render. It returns as soon as
     the element appears, so a big timeout is free on fast launches. Do not
     assert on the always-present app container ("One Punch") to gate this;

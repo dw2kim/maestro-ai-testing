@@ -10,9 +10,11 @@ appId: com.daewonkim.opmworkout
 # render Home content (blank splash meanwhile), so wait generously here.
 # extendedWaitUntil returns as soon as the element appears, so a large
 # timeout only costs time on genuinely slow launches. (See reports/US-002.md.)
+# The first launch after a fresh simulator boot is slower still and can
+# exceed 45s, so the budget is 90s.
 - extendedWaitUntil:
     visible: "(?s)DAY 1.*"
-    timeout: 45000
+    timeout: 90000
 - takeScreenshot: 01-home
 
 # AC: tapping the "Journey" bottom-nav tab navigates to the Journey screen.
