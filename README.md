@@ -25,6 +25,17 @@ user story + view hierarchy
  [4] AI report (prompts/generate-report.md) -> reports/
 ```
 
+## Architecture
+
+A visual walkthrough of the pipeline — how the AI and Maestro stages fit
+together, and how a generated flow stays valid Maestro YAML (prompt
+allow-list -> Claude -> human review -> Maestro runtime) — lives at
+[`docs/architecture.html`](docs/architecture.html).
+
+It's a self-contained HTML page; view it rendered via
+[htmlpreview](https://htmlpreview.github.io/?https://github.com/dw2kim/maestro-ai-testing/blob/main/docs/architecture.html),
+or open the file locally.
+
 ## Repo layout
 
 ```
@@ -36,6 +47,7 @@ prompts/                 prompt templates for generation and reporting
 scripts/                 run and dump helpers
 runs/                    per-run artifacts (gitignored)
 reports/                 AI-generated reports (committed)
+docs/                    architecture page (docs/architecture.html)
 ```
 
 ## Prerequisites
